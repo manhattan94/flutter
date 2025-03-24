@@ -17,8 +17,6 @@
 #include "impeller/entity/entity.h"
 #include "impeller/geometry/matrix.h"
 #include "impeller/typographer/backends/skia/text_frame_skia.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkRect.h"
 
 #include "impeller/typographer/backends/skia/typographer_context_skia.h"
 #include "txt/platform.h"
@@ -34,7 +32,7 @@ struct TextRenderOptions {
   Scalar font_size = 50;
   Scalar stroke_width = 1;
   DlColor color = DlColor::kYellow();
-  SkPoint position = SkPoint::Make(100, 200);
+  DlPoint position = DlPoint(100, 200);
   std::shared_ptr<DlMaskFilter> filter;
   bool is_subpixel = false;
 };
@@ -47,9 +45,9 @@ bool RenderTextInCanvasSkia(const std::shared_ptr<Context>& context,
   // Draw the baseline.
   DlPaint paint;
   paint.setColor(DlColor::kAqua().withAlpha(255 * 0.25));
-  canvas.DrawRect(SkRect::MakeXYWH(options.position.x() - 50,
-                                   options.position.y(), 900, 10),
-                  paint);
+  canvas.DrawRect(
+      DlRect::MakeXYWH(options.position.x - 50, options.position.y, 900, 10),
+      paint);
 
   // Mark the point at which the text is drawn.
   paint.setColor(DlColor::kRed().withAlpha(255 * 0.25));
@@ -80,7 +78,7 @@ bool RenderTextInCanvasSkia(const std::shared_ptr<Context>& context,
   text_paint.setStrokeWidth(options.stroke_width);
   text_paint.setDrawStyle(options.stroke ? DlDrawStyle::kStroke
                                          : DlDrawStyle::kFill);
-  canvas.DrawTextFrame(frame, options.position.x(), options.position.y(),
+  canvas.DrawTextFrame(frame, options.position.x, options.position.y,
                        text_paint);
   return true;
 }
@@ -160,6 +158,7 @@ TEST_P(AiksTest, CanRenderTextFrameWithHalfScaling) {
   ASSERT_TRUE(OpenPlaygroundHere(builder.Build()));
 }
 
+<<<<<<< HEAD
 TEST_P(AiksTest, CanRenderTextFrameWithFractionScaling) {
   Scalar fine_scale = 0.f;
   bool is_subpixel = false;
@@ -224,6 +223,122 @@ TEST_P(AiksTest, TextRotated180Degrees) {
     return builder.Build();
   };
   ASSERT_TRUE(OpenPlaygroundHere(callback));
+=======
+// This is a test that looks for glyph artifacts we've see.
+TEST_P(AiksTest, ScaledK) {
+  DisplayListBuilder builder;
+  DlPaint paint;
+  paint.setColor(DlColor::ARGB(1, 0.1, 0.1, 0.1));
+  builder.DrawPaint(paint);
+  for (int i = 0; i < 6; ++i) {
+    builder.Save();
+    builder.Translate(300 * i, 0);
+    Scalar scale = 0.445 - (i / 1000.f);
+    builder.Scale(scale, scale);
+    RenderTextInCanvasSkia(
+        GetContext(), builder, "k", "Roboto-Regular.ttf",
+        TextRenderOptions{.font_size = 600, .position = DlPoint(10, 500)});
+    RenderTextInCanvasSkia(
+        GetContext(), builder, "k", "Roboto-Regular.ttf",
+        TextRenderOptions{.font_size = 300, .position = DlPoint(10, 800)});
+    builder.Restore();
+  }
+  ASSERT_TRUE(OpenPlaygroundHere(builder.Build()));
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
+}
+
+TEST_P(AiksTest, CanRenderTextFrameWithScalingOverflow) {
+  Scalar scale = 60.0;
+  Scalar offsetx = -500.0;
+  Scalar offsety = 700.0;
+  auto callback = [&]() -> sk_sp<DisplayList> {
+    if (AiksTest::ImGuiBegin("Controls", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::SliderFloat("scale", &scale, 1.f, 300.f);
+      ImGui::SliderFloat("offsetx", &offsetx, -600.f, 100.f);
+      ImGui::SliderFloat("offsety", &offsety, 600.f, 2048.f);
+      ImGui::End();
+    }
+    DisplayListBuilder builder;
+    builder.Scale(GetContentScale().x, GetContentScale().y);
+    DlPaint paint;
+    paint.setColor(DlColor::ARGB(1, 0.1, 0.1, 0.1));
+    builder.DrawPaint(paint);
+    builder.Scale(scale, scale);
+
+    RenderTextInCanvasSkia(
+        GetContext(), builder, "test", "Roboto-Regular.ttf",
+        TextRenderOptions{
+            .position = DlPoint(offsetx / scale, offsety / scale),
+        });
+    return builder.Build();
+  };
+  ASSERT_TRUE(OpenPlaygroundHere(callback));
+}
+
+TEST_P(AiksTest, CanRenderTextFrameWithFractionScaling) {
+  Scalar fine_scale = 0.f;
+  bool is_subpixel = false;
+  auto callback = [&]() -> sk_sp<DisplayList> {
+    if (AiksTest::ImGuiBegin("Controls", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::SliderFloat("Fine Scale", &fine_scale, -1, 1);
+      ImGui::Checkbox("subpixel", &is_subpixel);
+      ImGui::End();
+    }
+
+    DisplayListBuilder builder;
+    DlPaint paint;
+    paint.setColor(DlColor::ARGB(1, 0.1, 0.1, 0.1));
+    builder.DrawPaint(paint);
+    Scalar scale = 2.625 + fine_scale;
+    builder.Scale(scale, scale);
+    RenderTextInCanvasSkia(GetContext(), builder,
+                           "the quick brown fox jumped over the lazy dog!.?",
+                           "Roboto-Regular.ttf",
+                           TextRenderOptions{.is_subpixel = is_subpixel});
+    return builder.Build();
+  };
+
+  ASSERT_TRUE(OpenPlaygroundHere(callback));
+}
+
+// https://github.com/flutter/flutter/issues/164958
+TEST_P(AiksTest, TextRotated180Degrees) {
+  float fpivot[2] = {200 + 30, 200 - 20};
+  float rotation = 180;
+  float foffset[2] = {200, 200};
+
+  auto callback = [&]() -> sk_sp<DisplayList> {
+    if (AiksTest::ImGuiBegin("Controls", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::SliderFloat("pivotx", &fpivot[0], 0, 300);
+      ImGui::SliderFloat("pivoty", &fpivot[1], 0, 300);
+      ImGui::SliderFloat("rotation", &rotation, 0, 360);
+      ImGui::SliderFloat("foffsetx", &foffset[0], 0, 300);
+      ImGui::SliderFloat("foffsety", &foffset[1], 0, 300);
+      ImGui::End();
+    }
+    DisplayListBuilder builder;
+    builder.Scale(GetContentScale().x, GetContentScale().y);
+    builder.DrawPaint(DlPaint().setColor(DlColor(0xffffeeff)));
+
+    builder.Save();
+    DlPoint pivot = Point(fpivot[0], fpivot[1]);
+    builder.Translate(pivot.x, pivot.y);
+    builder.Rotate(rotation);
+    builder.Translate(-pivot.x, -pivot.y);
+
+    RenderTextInCanvasSkia(GetContext(), builder, "test", "Roboto-Regular.ttf",
+                           TextRenderOptions{
+                               .color = DlColor::kBlack(),
+                               .position = DlPoint(foffset[0], foffset[1]),
+                           });
+
+    builder.Restore();
+    return builder.Build();
+  };
+  ASSERT_TRUE(OpenPlaygroundHere(callback));
 }
 
 TEST_P(AiksTest, TextFrameSubpixelAlignment) {
@@ -251,7 +366,7 @@ TEST_P(AiksTest, TextFrameSubpixelAlignment) {
     builder.Scale(GetContentScale().x, GetContentScale().y);
 
     for (size_t i = 0; i < phase_offsets.size(); i++) {
-      SkPoint position = SkPoint::Make(
+      DlPoint position = DlPoint(
           200 +
               magnitude * std::sin((-phase_offsets[i] * k2Pi * phase_variation +
                                     GetSecondsElapsed() * speed)),  //
@@ -345,7 +460,7 @@ TEST_P(AiksTest, CanRenderTextInSaveLayer) {
 
   // Blend the layer with the parent pass using kClear to expose the coverage.
   paint.setBlendMode(DlBlendMode::kClear);
-  builder.SaveLayer(nullptr, &paint);
+  builder.SaveLayer(std::nullopt, &paint);
   ASSERT_TRUE(RenderTextInCanvasSkia(
       GetContext(), builder, "the quick brown fox jumped over the lazy dog!.?",
       "Roboto-Regular.ttf"));
@@ -375,17 +490,17 @@ TEST_P(AiksTest, CanRenderTextOutsideBoundaries) {
   text_paint.setColor(DlColor::kBlue().withAlpha(255 * 0.8));
 
   struct {
-    SkPoint position;
+    DlPoint position;
     const char* text;
-  } text[] = {{SkPoint::Make(0, 0), "0F0F0F0"},
-              {SkPoint::Make(1, 2), "789"},
-              {SkPoint::Make(1, 3), "456"},
-              {SkPoint::Make(1, 4), "123"},
-              {SkPoint::Make(0, 6), "0F0F0F0"}};
+  } text[] = {{DlPoint(0, 0), "0F0F0F0"},
+              {DlPoint(1, 2), "789"},
+              {DlPoint(1, 3), "456"},
+              {DlPoint(1, 4), "123"},
+              {DlPoint(0, 6), "0F0F0F0"}};
   for (auto& t : text) {
     builder.Save();
-    builder.Translate(t.position.x() * font_size * 2,
-                      t.position.y() * font_size * 1.1);
+    builder.Translate(t.position.x * font_size * 2,
+                      t.position.y * font_size * 1.1);
     {
       auto blob = SkTextBlob::MakeFromString(t.text, sk_font);
       ASSERT_NE(blob, nullptr);
@@ -406,11 +521,10 @@ TEST_P(AiksTest, TextRotated) {
   paint.setColor(DlColor::ARGB(0.1, 0.1, 0.1, 1.0));
   builder.DrawPaint(paint);
 
-  builder.Transform(SkM44::ColMajor(Matrix(0.25, -0.3, 0, -0.002,  //
-                                           0, 0.5, 0, 0,           //
-                                           0, 0, 0.3, 0,           //
-                                           100, 100, 0, 1.3)
-                                        .m));
+  builder.Transform(Matrix(0.25, -0.3, 0, -0.002,  //
+                           0, 0.5, 0, 0,           //
+                           0, 0, 0.3, 0,           //
+                           100, 100, 0, 1.3));
   ASSERT_TRUE(RenderTextInCanvasSkia(
       GetContext(), builder, "the quick brown fox jumped over the lazy dog!.?",
       "Roboto-Regular.ttf"));
@@ -427,7 +541,7 @@ TEST_P(AiksTest, DrawScaledTextWithPerspectiveNoSaveLayer) {
                          0.0, 0.0, 0.0, 1.0) *  //
                   Matrix::MakeRotationY({Degrees{10}});
 
-  builder.Transform(SkM44::ColMajor(matrix.m));
+  builder.Transform(matrix);
 
   ASSERT_TRUE(RenderTextInCanvasSkia(GetContext(), builder, "Hello world",
                                      "Roboto-Regular.ttf"));
@@ -444,11 +558,11 @@ TEST_P(AiksTest, DrawScaledTextWithPerspectiveSaveLayer) {
                   Matrix::MakeRotationY({Degrees{10}});
 
   DlPaint save_paint;
-  SkRect window_bounds =
-      SkRect::MakeXYWH(0, 0, GetWindowSize().width, GetWindowSize().height);
+  DlRect window_bounds =
+      DlRect::MakeXYWH(0, 0, GetWindowSize().width, GetWindowSize().height);
   // Note: bounds were not needed by the AIKS version, which may indicate a bug.
-  builder.SaveLayer(&window_bounds, &save_paint);
-  builder.Transform(SkM44::ColMajor(matrix.m));
+  builder.SaveLayer(window_bounds, &save_paint);
+  builder.Transform(matrix);
 
   ASSERT_TRUE(RenderTextInCanvasSkia(GetContext(), builder, "Hello world",
                                      "Roboto-Regular.ttf"));
@@ -464,13 +578,12 @@ TEST_P(AiksTest, CanRenderTextWithLargePerspectiveTransform) {
   DisplayListBuilder builder;
 
   DlPaint save_paint;
-  builder.SaveLayer(nullptr, &save_paint);
-  builder.Transform(SkM44::ColMajor(Matrix(2000, 0, 0, 0,   //
-                                           0, 2000, 0, 0,   //
-                                           0, 0, -1, 9000,  //
-                                           0, 0, -1, 7000   //
-                                           )
-                                        .m));
+  builder.SaveLayer(std::nullopt, &save_paint);
+  builder.Transform(Matrix(2000, 0, 0, 0,   //
+                           0, 2000, 0, 0,   //
+                           0, 0, -1, 9000,  //
+                           0, 0, -1, 7000   //
+                           ));
 
   ASSERT_TRUE(RenderTextInCanvasSkia(GetContext(), builder, "Hello world",
                                      "Roboto-Regular.ttf"));
@@ -491,10 +604,10 @@ TEST_P(AiksTest, CanRenderTextWithPerspectiveTransformInSublist) {
                                   0.0, 0.002, 0.0, 1.0);
 
   DlPaint save_paint;
-  SkRect window_bounds =
-      SkRect::MakeXYWH(0, 0, GetWindowSize().width, GetWindowSize().height);
-  builder.SaveLayer(&window_bounds, &save_paint);
-  builder.Transform(SkM44::ColMajor(matrix.m));
+  DlRect window_bounds =
+      DlRect::MakeXYWH(0, 0, GetWindowSize().width, GetWindowSize().height);
+  builder.SaveLayer(window_bounds, &save_paint);
+  builder.Transform(matrix);
   builder.DrawDisplayList(text_display_list, 1.0f);
   builder.Restore();
 
@@ -564,7 +677,7 @@ TEST_P(AiksTest, DifferenceClipsMustRenderIdenticallyAcrossBackends) {
   builder.DrawRect(frame, paint);
 
   builder.Save();
-  builder.ClipRect(frame, DlCanvas::ClipOp::kIntersect);
+  builder.ClipRect(frame, DlClipOp::kIntersect);
 
   DlMatrix rect_xform = {
       0.8241262, 0.56640625, 0.0, 0.0, -0.56640625, 0.8241262, 0.0, 0.0,
@@ -580,7 +693,7 @@ TEST_P(AiksTest, DifferenceClipsMustRenderIdenticallyAcrossBackends) {
   builder.DrawRoundRect(rrect, paint);
 
   builder.Save();
-  builder.ClipRect(rect, DlCanvas::ClipOp::kIntersect);
+  builder.ClipRect(rect, DlClipOp::kIntersect);
   builder.Restore();
 
   builder.Restore();
@@ -592,19 +705,20 @@ TEST_P(AiksTest, DifferenceClipsMustRenderIdenticallyAcrossBackends) {
   builder.Save();
   builder.Transform(path_xform);
 
-  SkPath path;
-  path.moveTo(87.5, 349.5);
-  path.lineTo(25.0, 29.5);
-  path.lineTo(150.0, 118.0);
-  path.lineTo(25.0, 118.0);
-  path.lineTo(150.0, 29.5);
-  path.close();
+  DlPathBuilder path_builder;
+  path_builder.MoveTo(DlPoint(87.5, 349.5));
+  path_builder.LineTo(DlPoint(25.0, 29.5));
+  path_builder.LineTo(DlPoint(150.0, 118.0));
+  path_builder.LineTo(DlPoint(25.0, 118.0));
+  path_builder.LineTo(DlPoint(150.0, 29.5));
+  path_builder.Close();
+  DlPath path(path_builder);
 
   DlColor fill_color(1.0, 1.0, 0.0, 0.0, DlColorSpace::kSRGB);
   DlColor stroke_color(1.0, 0.0, 0.0, 0.0, DlColorSpace::kSRGB);
   paint.setColor(fill_color);
   paint.setDrawStyle(DlDrawStyle::kFill);
-  builder.DrawPath(DlPath(path), paint);
+  builder.DrawPath(path, paint);
 
   paint.setColor(stroke_color);
   paint.setStrokeWidth(2.0);

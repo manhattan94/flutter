@@ -259,8 +259,11 @@ TEST(DriverInfoVKTest, AllPowerVRDisabled) {
                 prop->deviceType = VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
               })
           .Build();
+<<<<<<< HEAD
 
   EXPECT_TRUE(context->GetDriverInfo()->IsKnownBadDriver());
+=======
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 }
 
 }  // namespace impeller::testing

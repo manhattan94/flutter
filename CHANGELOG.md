@@ -28,11 +28,14 @@ INTERNAL NOTE
 
 ### [3.29.2](https://github.com/flutter/flutter/releases/tag/3.29.2)
 
+<<<<<<< HEAD
 - [dart 3.7.2 changelog](https://github.com/dart-lang/sdk/blob/stable/CHANGELOG.md#372)
 - [flutter/164958](https://github.com/flutter/flutter/issues/164958) - Impeller, All platforms, Text that is rotated 180 degrees exactly will render as if it is scaled by {-1, 1} instead of {-1, -1}.
 - [flutter/165075](https://github.com/flutter/flutter/pull/165075) - Fixes crashes on Android devices older than API 29 when using Impeller OpenGLES.
 - [flutter/164606](https://github.com/flutter/flutter/issues/164606) Fixes missing glyph error on Android and iOS devices using Impeller.
 - [flutter/164036](https://github.com/flutter/flutter/pull/164036) - On iOS devices Increase number of concurrent background image decode tasks to partially mitigate "Image upload failed due to loss of GPU access" errors.
+=======
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 - [flutter/163175](https://github.com/flutter/flutter/pull/163175) - Improve performance of CanvasKit rendering for web.
 - [flutter/164628](https://github.com/flutter/flutter/issues/164628) - iOS Fixes crash when allocation of surface for toImage/toImageSync fails.
 - [flutter/164201](https://github.com/flutter/flutter/pull/164201) - Always use Android hardware buffers for platform views when supported.
@@ -40,18 +43,26 @@ INTERNAL NOTE
 - [flutter/164024](https://github.com/flutter/flutter/issues/164024): - Add back an empty io.flutter.app.FlutterApplication for Android apps post v2 embedder migration.
 - [flutter/162198](https://github.com/flutter/flutter/issues/162198) - Fixes double-download of canvaskit.wasm
 - [flutter/164392](https://github.com/flutter/flutter/pull/164392) - All platforms, Fixes a crash that can occur when animating and interacting with a scrollable simultaneously.
+<<<<<<< HEAD
 - [flutter/164126](https://github.com/flutter/flutter/pull/164126) - On android use Open GL instead of Vulkan MediaTek Soc.
+=======
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 
 ### [3.29.1](https://github.com/flutter/flutter/releases/tag/3.29.1)
 
 - [flutter/163830](https://github.com/flutter/flutter/pull/163830) - Fix Tab linear and elastic animation blink.
 - [flutter/164119](https://github.com/flutter/flutter/pull/164119) - Configuration changes to run test on macOS 14 for Flutter's CI.
 - [flutter/164155](https://github.com/flutter/flutter/pull/164155) - Roll .ci.yaml changes into the LUCI configuration only when the master branch is updated.
+<<<<<<< HEAD
 - [flutter/164191](https://github.com/flutter/flutter/pull/164191) - Improve safaridriver launch process in Flutter's CI testing.
+=======
+- [flutter/164191](https://github.com/flutter/flutter/pull/164191) - Improve safaridriver launch process in Flutter's CI testing for web.
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 - [flutter/164193](https://github.com/flutter/flutter/pull/164193) - Provide guided error message when app crashes due to JIT restriction on iPhones.
 - [flutter/164050](https://github.com/flutter/flutter/pull/164050) - Fixes test reorderable_list_test.dart failing for certain ordering seeds, such as 20250221.
 - [flutter/163316](https://github.com/flutter/flutter/pull/163316) - Configuration changes to run test on macOS 14 for Flutter's CI.
 - [flutter/163581](https://github.com/flutter/flutter/pull/163581) - Fix crash when using BackdropFilters in certain GLES drivers.
+<<<<<<< HEAD
 - [flutter/163616](https://github.com/flutter/flutter/pull/163616) - Disable Vulkan on known bad Xclipse GPU drivers.
 - [flutter/163666](https://github.com/flutter/flutter/pull/163666) - always post new task during gesture dispatch.
 - [flutter/163667](https://github.com/flutter/flutter/pull/163667) - ensure that OpenGL "flipped" textures do not leak via texture readback.
@@ -63,11 +74,32 @@ glyphs.
 - [flutter/163265](https://github.com/flutter/flutter/pull/163265) - disable Vulkan on known bad exynos SoCs.
 - [flutter/163261](https://github.com/flutter/flutter/pull/163261) - Fixes for Impeller DrawVertices issues involving snapshots with empty sizes
 - [flutter/163672](https://github.com/flutter/flutter/pull/163672) - Check for tracked engine.version before overriding
+=======
+- [flutter/163616](https://github.com/flutter/flutter/pull/163616) - Disable Vulkan on known bad Xclipse GPU drivers for Android.
+- [flutter/163666](https://github.com/flutter/flutter/pull/163666) - Always post new task during gesture dispatch to fix jittery scrolling on iOS devices.
+- [flutter/163667](https://github.com/flutter/flutter/pull/163667) - Ensure that OpenGL "flipped" textures do not leak via texture readback.
+- [flutter/163741](https://github.com/flutter/flutter/pull/163741) - Flutter tool respects tracked engine.version.
+- [flutter/163754](https://github.com/flutter/flutter/pull/163754) - Fix text glitch when returning to foreground for Android.
+- [flutter/163058](https://github.com/flutter/flutter/pull/163058) - Fixes jittery glyphs.
+- [flutter/163201](https://github.com/flutter/flutter/pull/163201) - Fixes buttons with icons that ignore foregroundColor.
+- [flutter/163265](https://github.com/flutter/flutter/pull/163265) - Disable Vulkan on known bad exynos SoCs for Android.
+- [flutter/163261](https://github.com/flutter/flutter/pull/163261) - Fixes for Impeller DrawVertices issues involving snapshots with empty sizes.
+- [flutter/163672](https://github.com/flutter/flutter/pull/163672) - Check for tracked engine.version before overriding.
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 
 ### [3.29.0](https://github.com/flutter/flutter/releases/tag/3.29.0)
 Initial stable release.
 
 ## Flutter 3.27 Changes
+
+### [3.27.4](https://github.com/flutter/flutter/releases/tag/3.27.4)
+- [flutter/162132](https://github.com/flutter/flutter/pull/162132) On all platforms DropdownMenu's menuChildren might be placed somewhere far from menuAnchor.
+
+### [3.27.3](https://github.com/flutter/flutter/releases/tag/3.27.3)
+- [flutter/159212](https://github.com/flutter/flutter/issues/159212) Track (via Google Analytics) if the Dart AOT Android "Deferred Components" feature is being meaningfully used.
+- [flutter/160631](https://github.com/flutter/flutter/issues/160631) Fixes an issue with Material 3 Tab Bar animations.
+- [flutter/159289](https://github.com/flutter/flutter/issues/159289) Fixes an issue with fullscreen route transitions.
+- [flutter/162132](https://github.com/flutter/flutter/issues/162132) Fixes an issue that incorrectly positions `MenuAnchor`s in nested overlays.
 
 ### [3.27.2](https://github.com/flutter/flutter/releases/tag/3.27.2)
 

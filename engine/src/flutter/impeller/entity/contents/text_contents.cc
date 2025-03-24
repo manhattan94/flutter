@@ -77,6 +77,25 @@ void TextContents::SetTextProperties(Color color,
   }
 }
 
+<<<<<<< HEAD
+=======
+namespace {
+Scalar AttractToOne(Scalar x) {
+  // Epsilon was decided by looking at the floating point inaccuracies in
+  // the ScaledK test.
+  const Scalar epsilon = 0.005f;
+  if (std::abs(x - 1.f) < epsilon) {
+    return 1.f;
+  }
+  if (std::abs(x + 1.f) < epsilon) {
+    return -1.f;
+  }
+  return x;
+}
+
+}  // namespace
+
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
 void TextContents::ComputeVertexData(
     VS::PerVertexData* vtx_contents,
     const std::shared_ptr<TextFrame>& frame,
@@ -105,7 +124,11 @@ void TextContents::ComputeVertexData(
   size_t bounds_offset = 0u;
   for (const TextRun& run : frame->GetRuns()) {
     const Font& font = run.GetFont();
+<<<<<<< HEAD
     Scalar rounded_scale = frame->GetScale();
+=======
+    Rational rounded_scale = frame->GetScale();
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
     const Matrix transform = frame->GetOffsetTransform();
     FontGlyphAtlas* font_atlas = nullptr;
 
@@ -149,7 +172,11 @@ void TextContents::ComputeVertexData(
           VALIDATION_LOG << "Could not find font in the atlas.";
           continue;
         }
+<<<<<<< HEAD
         Point subpixel = TextFrame::ComputeSubpixelPosition(
+=======
+        SubpixelPosition subpixel = TextFrame::ComputeSubpixelPosition(
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
             glyph_position, font.GetAxisAlignment(), transform);
 
         std::optional<FrameBounds> maybe_atlas_glyph_bounds =
@@ -165,7 +192,13 @@ void TextContents::ComputeVertexData(
         atlas_glyph_bounds = maybe_atlas_glyph_bounds.value().atlas_bounds;
       }
 
+<<<<<<< HEAD
       Rect scaled_bounds = glyph_bounds.Scale(1.0 / rounded_scale);
+=======
+      Scalar inverted_rounded_scale =
+          static_cast<Scalar>(rounded_scale.Invert());
+      Rect scaled_bounds = glyph_bounds.Scale(inverted_rounded_scale);
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
       // For each glyph, we compute two rectangles. One for the vertex
       // positions and one for the texture coordinates (UVs). The atlas
       // glyph bounds are used to compute UVs in cases where the
@@ -175,8 +208,19 @@ void TextContents::ComputeVertexData(
       Point uv_size = SizeToPoint(atlas_glyph_bounds.GetSize()) / atlas_size;
 
       Matrix unscaled_basis =
+<<<<<<< HEAD
           Matrix::MakeScale({basis_transform.m[0] > 0 ? 1.f : -1.f,
                              basis_transform.m[5] > 0 ? 1.f : -1.f, 1.f});
+=======
+          basis_transform * Matrix::MakeScale({inverted_rounded_scale,
+                                               inverted_rounded_scale, 1});
+
+      // In typical scales < 48x these values should be -1 or 1. We round to
+      // those to avoid inaccuracies.
+      unscaled_basis.m[0] = AttractToOne(unscaled_basis.m[0]);
+      unscaled_basis.m[5] = AttractToOne(unscaled_basis.m[5]);
+
+>>>>>>> 85235a41f623cd5aec4f78bd0f3505167bbfbfe4
       Point unrounded_glyph_position =
           // This is for RTL text.
           unscaled_basis * glyph_bounds.GetLeftTop() +
